@@ -9,7 +9,10 @@ class KhuFork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CupertinoApp(title: 'KhuFork', home: MainTabScaffold());
+    return const CupertinoApp(
+      title: 'KhuFork',
+      home: LoginPage(),
+    ); // LoginPage 로 바꿔서 release 하기
   }
 }
 
@@ -48,7 +51,7 @@ class MainTabScaffold extends StatelessWidget {
 
         switch (index) {
           case 0:
-            page = const MusicPage();
+            page = const MainPage();
             break;
           case 1:
             page = const FeedPage();
@@ -78,8 +81,8 @@ class MainTabScaffold extends StatelessWidget {
 
 /// ---------------------- Pages ----------------------
 
-class MusicPage extends StatelessWidget {
-  const MusicPage({super.key});
+class MainPage extends StatelessWidget {
+  const MainPage({super.key});
 
   Widget _buildLargeTitle(String title) {
     return Padding(
@@ -250,15 +253,6 @@ class MusicPage extends StatelessWidget {
             const SizedBox(height: 24),
             _buildRecentlyPlayedRow(),
             const SizedBox(height: 24),
-            CupertinoButton(
-              child: const Text('Go to Player'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute<void>(builder: (_) => const PlayerPage()),
-                );
-              },
-            ),
           ],
         ),
       ),
@@ -506,16 +500,6 @@ class LibraryPage extends StatelessWidget {
         'artist': 'Lorde',
         'color': const Color(0xFFFFE0DC),
       },
-      {
-        'albumTitle': 'Graduation',
-        'artist': 'Kanye West',
-        'color': const Color(0xFFFFE0DF),
-      },
-      {
-        'albumTitle': 'Gnx',
-        'artist': 'Kendrick Lamar',
-        'color': const Color(0xFFFFE0AC),
-      },
     ];
 
     return Column(
@@ -533,29 +517,32 @@ class LibraryPage extends StatelessWidget {
           child: Column(
             children: List.generate((albumList.length / 2).ceil(), (rowIndex) {
               final int startIndex = rowIndex * 2;
-              final List<Map<String, dynamic>> rowItems = albumList
-                  .skip(startIndex)
-                  .take(2)
-                  .toList();
+              final rowItems = albumList.skip(startIndex).take(2).toList();
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: Row(
-                  children: rowItems.map((album) {
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          right: rowItems.indexOf(album) == 0 ? 8.0 : 0,
-                        ),
+                  children: <Widget>[
+                    Expanded(
+                      child: AlbumInfoCard(
+                        albumTitle: rowItems[0]['albumTitle'] as String,
+                        artist: rowItems[0]['artist'] as String,
+                        backgroundColor: rowItems[0]['color'] as Color,
+                        icon: CupertinoIcons.music_albums,
+                      ),
+                    ),
+                    if (rowItems.length > 1) ...[
+                      const SizedBox(width: 16),
+                      Expanded(
                         child: AlbumInfoCard(
-                          albumTitle: album['albumTitle'] as String,
-                          artist: album['artist'] as String,
-                          backgroundColor: album['color'] as Color,
+                          albumTitle: rowItems[1]['albumTitle'] as String,
+                          artist: rowItems[1]['artist'] as String,
+                          backgroundColor: rowItems[1]['color'] as Color,
                           icon: CupertinoIcons.music_albums,
                         ),
                       ),
-                    );
-                  }).toList(),
+                    ],
+                  ],
                 ),
               );
             }),
@@ -733,6 +720,7 @@ class PlayerPage extends StatelessWidget {
   }
 }
 
+// 앨범 정보 창
 class AlbumInfoPage extends StatelessWidget {
   const AlbumInfoPage({super.key});
 
@@ -744,251 +732,252 @@ class AlbumInfoPage extends StatelessWidget {
         automaticallyImplyLeading: false,
       ),
       child: SafeArea(
-        child: Column(
-          children: [
-            // 상단 아이콘 행
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 8,
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(CupertinoIcons.back, size: 28),
-                  ),
-                  const Spacer(),
-                  const Icon(CupertinoIcons.share, size: 24),
-                  const SizedBox(width: 12),
-                  const Icon(CupertinoIcons.ellipsis, size: 24),
-                ],
-              ),
-            ),
-
-            // 앨범 이미지
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: Center(
-                child: Container(
-                  width: 210,
-                  height: 210,
-                  color: CupertinoColors.activeGreen, // 임시 색상
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'brat',
-                    style: TextStyle(
-                      fontSize: 32,
-                      color: CupertinoColors.black,
-                    ),
-                  ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24), // 바닥 여백
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 상단 아이콘 행
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 8,
                 ),
-              ),
-            ),
-
-            // 앨범 정보 (제목 + 아티스트)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: SizedBox(
-                height: 52,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text(
-                      'BRAT',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Charli XCX',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // 별점 표시
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: SizedBox(
-                width: 217,
-                child: const Center(
-                  child: Text(
-                    '★★★★★',
-                    style: TextStyle(
-                      fontSize: 40,
-                      color: CupertinoColors.black,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Critic's review
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 8, bottom: 4),
-              child: Text(
-                "Critic's Review",
-                style: TextStyle(
-                  color: CupertinoColors.systemRed,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-
-            // 평론가 박스
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(left: 16),
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (_) => const ArticlePage(),
-                          ),
-                        );
-                      },
-                      child: const _CriticBox(name: 'PitchFork', stars: 4),
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(CupertinoIcons.back, size: 28),
                     ),
+                    const Spacer(),
+                    const Icon(CupertinoIcons.share, size: 24),
                     const SizedBox(width: 12),
-                    const _CriticBox(name: 'Rollingstone', stars: 4),
-                    const SizedBox(width: 12),
-                    const _CriticBox(name: 'Jim', stars: 3),
-                    const SizedBox(width: 12),
-                    const _CriticBox(name: 'Fantano', stars: 5),
+                    const Icon(CupertinoIcons.ellipsis, size: 24),
                   ],
                 ),
               ),
-            ),
 
-            // Play + Shuffle 버튼
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 12.0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Play 버튼
-                  Expanded(
-                    child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      color: const Color(0xFFEDE4F6), // 더 연한 보라색
-                      borderRadius: BorderRadius.circular(12),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (_) => const PlayerPage(),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(CupertinoIcons.play_arrow_solid, size: 18),
-                          SizedBox(width: 6),
-                          Text('Play', style: TextStyle(fontSize: 16)),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 16), // 버튼 사이 간격
-                  // Shuffle 버튼
-                  Expanded(
-                    child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      color: const Color(0xFFEDE4F6), // 더 연한 보라색
-                      borderRadius: BorderRadius.circular(12),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (_) => const PlayerPage(),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(CupertinoIcons.shuffle, size: 18),
-                          SizedBox(width: 6),
-                          Text('Shuffle', style: TextStyle(fontSize: 16)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // (아래에 다른 내용 추가 가능)
-            Expanded(
-              child: ListView.builder(
+              // 앨범 이미지
+              Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
+                  horizontal: 12.0,
                   vertical: 8,
                 ),
-                itemCount: 15,
-                itemBuilder: (BuildContext context, int index) {
-                  final List<String> tracks = [
-                    '360',
-                    'Club classics',
-                    'Sympathy is a knife',
-                    'I might say something stupid',
-                    'Talk talk',
-                    'Von dutch',
-                    'Everything is romantic',
-                    'Rewind',
-                    'So I',
-                    'Girl, so confusing',
-                    'Apple',
-                    'B2b',
-                    'Mean girls',
-                    'I think about it all the time',
-                    '365',
-                  ];
+                child: Center(
+                  child: Container(
+                    width: 210,
+                    height: 210,
+                    color: CupertinoColors.activeGreen,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'brat',
+                      style: TextStyle(
+                        fontSize: 32,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      children: [
+              // 앨범 정보
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: SizedBox(
+                  height: 52,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
                         Text(
-                          '${index + 1}.',
-                          style: const TextStyle(
-                            color: CupertinoColors.systemRed,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                          'BRAT',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            tracks[index],
-                            style: const TextStyle(fontSize: 16),
+                        Text(
+                          'Charli XCX',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: CupertinoColors.systemGrey,
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ],
+
+              // 사용자 평점
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Center(
+                  child: InteractiveCriticBox(
+                    initialStars: 5,
+                    onRatingChanged: (stars) {
+                      print("User rated $stars stars");
+                    },
+                  ),
+                ),
+              ),
+
+              // Critic's Review 제목
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, top: 8, bottom: 4),
+                child: Text(
+                  "Critic's Review",
+                  style: TextStyle(
+                    color: CupertinoColors.systemRed,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              // 평론가 박스
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (_) => const ArticlePage(),
+                            ),
+                          );
+                        },
+                        child: const _CriticBox(name: 'PitchFork', stars: 4),
+                      ),
+                      const SizedBox(width: 12),
+                      const _CriticBox(name: 'Rollingstone', stars: 4),
+                      const SizedBox(width: 12),
+                      const _CriticBox(name: 'Jim', stars: 3),
+                      const SizedBox(width: 12),
+                      const _CriticBox(name: 'Fantano', stars: 5),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Play + Shuffle 버튼
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 12.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        color: const Color(0xFFEDE4F6),
+                        borderRadius: BorderRadius.circular(12),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (_) => const PlayerPage(),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(CupertinoIcons.play_arrow_solid, size: 18),
+                            SizedBox(width: 6),
+                            Text('Play', style: TextStyle(fontSize: 16)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        color: const Color(0xFFEDE4F6),
+                        borderRadius: BorderRadius.circular(12),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (_) => const PlayerPage(),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(CupertinoIcons.shuffle, size: 18),
+                            SizedBox(width: 6),
+                            Text('Shuffle', style: TextStyle(fontSize: 16)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 트랙 리스트
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                child: Column(
+                  children: List.generate(15, (index) {
+                    final List<String> tracks = [
+                      '360',
+                      'Club classics',
+                      'Sympathy is a knife',
+                      'I might say something stupid',
+                      'Talk talk',
+                      'Von dutch',
+                      'Everything is romantic',
+                      'Rewind',
+                      'So I',
+                      'Girl, so confusing',
+                      'Apple',
+                      'B2b',
+                      'Mean girls',
+                      'I think about it all the time',
+                      '365',
+                    ];
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            '${index + 1}.',
+                            style: const TextStyle(
+                              color: CupertinoColors.systemRed,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              tracks[index],
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1035,6 +1024,134 @@ class ArticlePage extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
+  void _goToMainPage(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      CupertinoPageRoute(builder: (context) => const MainTabScaffold()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(middle: Text('Sign In')),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: ListView(
+            children: [
+              const SizedBox(height: 60),
+              const Text(
+                'KhuFork',
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Sign in to your account',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Enter your email to continue',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: CupertinoColors.systemGrey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              const CupertinoTextField(
+                placeholder: 'email@domain.com',
+                keyboardType: TextInputType.emailAddress,
+                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              ),
+              const SizedBox(height: 16),
+              CupertinoButton.filled(
+                child: const Text('Continue'),
+                onPressed: () => _goToMainPage(context),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: const [
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey4,
+                        ),
+                        child: SizedBox(height: 1),
+                      ),
+                    ),
+                  ),
+                  Text("or"),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey4,
+                        ),
+                        child: SizedBox(height: 1),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              CupertinoButton(
+                color: CupertinoColors.systemGrey5,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                onPressed: () {},
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    SizedBox(width: 8),
+                    Text(
+                      'Continue with Google',
+                      style: TextStyle(color: CupertinoColors.black),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              CupertinoButton(
+                color: CupertinoColors.systemGrey5,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                onPressed: () {},
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    SizedBox(width: 8),
+                    Text(
+                      'Continue with Apple',
+                      style: TextStyle(color: CupertinoColors.black),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'By clicking continue, you agree to our Terms of Service and Privacy Policy',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: CupertinoColors.systemGrey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1235,6 +1352,74 @@ class _CriticBox extends StatelessWidget {
           const SizedBox(height: 2),
           Text(starString, style: const TextStyle(fontSize: 14)),
         ],
+      ),
+    );
+  }
+}
+
+class InteractiveCriticBox extends StatefulWidget {
+  final double initialStars;
+  final void Function(double)? onRatingChanged;
+
+  const InteractiveCriticBox({
+    super.key,
+    this.initialStars = 0,
+    this.onRatingChanged,
+  });
+
+  @override
+  State<InteractiveCriticBox> createState() => _InteractiveCriticBoxState();
+}
+
+class _InteractiveCriticBoxState extends State<InteractiveCriticBox> {
+  late double _currentStars;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStars = widget.initialStars;
+  }
+
+  void _updateStars(double stars) {
+    setState(() {
+      _currentStars = stars;
+    });
+    widget.onRatingChanged?.call(stars);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24.0), // 앨범 이미지처럼 여백 추가
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center, // 중앙 정렬
+        children: List.generate(5, (index) {
+          final starValue = index + 1;
+          IconData icon;
+          if (_currentStars >= starValue) {
+            icon = CupertinoIcons.star_fill;
+          } else if (_currentStars >= starValue - 0.5) {
+            icon = CupertinoIcons.star_lefthalf_fill;
+          } else {
+            icon = CupertinoIcons.star;
+          }
+
+          return GestureDetector(
+            onTap: () {
+              final tappedStar = index + 1;
+              final isHalf = _currentStars == tappedStar.toDouble();
+              final newStars = isHalf
+                  ? tappedStar - 0.5
+                  : tappedStar.toDouble();
+              _updateStars(newStars);
+            },
+            child: Icon(
+              icon,
+              color: CupertinoColors.black, // 검정색 별
+              size: 40,
+            ),
+          );
+        }),
       ),
     );
   }
