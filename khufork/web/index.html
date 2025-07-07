@@ -1,38 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="khufork">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
   <title>khufork</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+
+  <!-- JS 함수: Pitchfork 기사 정보를 가져오는 예시 -->
+  <script>
+    window.getPitchforkReview = async function () {
+      try {
+        const response = await fetch("https://corsproxy.io/?https://pitchfork.com/reviews/albums/charli-xcx-brat/");
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+
+        const title = doc.querySelector("h1.review-title")?.innerText;
+        const author = doc.querySelector(".review-author-link")?.innerText;
+        const date = doc.querySelector("time.pub-date")?.getAttribute("datetime");
+        const score = doc.querySelector(".score")?.innerText;
+        const paragraphs = Array.from(doc.querySelectorAll(".review-detail p"))
+          .map(p => p.innerText)
+          .join("\n\n");
+
+        return {
+          title, author, date, score, body: paragraphs
+        };
+      } catch (e) {
+        return { error: e.toString() };
+      }
+    }
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
