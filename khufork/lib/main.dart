@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
 void main() {
@@ -1056,15 +1057,42 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
 }
 
 // 앨범 평론 창
-class ArticlePage extends StatelessWidget {
+class ArticlePage extends StatefulWidget {
   const ArticlePage({super.key});
+
+  @override
+  State<ArticlePage> createState() => _ArticlePageState();
+}
+
+class _ArticlePageState extends State<ArticlePage> {
+  final Uri _url = Uri.parse(
+    'https://pitchfork.com/reviews/albums/charli-xcx-brat/',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _openUrl();
+  }
+
+  Future<void> _openUrl() async {
+    if (await canLaunchUrl(_url)) {
+      await launchUrl(
+        _url,
+        mode: LaunchMode.inAppBrowserView,
+        browserConfiguration: const BrowserConfiguration(showTitle: true),
+      );
+    } else {
+      debugPrint('Could not launch $_url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
         middle: Text('KhuFork'),
-        automaticallyImplyLeading: false, // 기본 back 제거 (우리가 따로 만들었으므로)
+        automaticallyImplyLeading: false,
       ),
       child: SafeArea(
         child: Column(
@@ -1089,10 +1117,10 @@ class ArticlePage extends StatelessWidget {
               ),
             ),
 
-            // 임시 본문
+            // 아래는 비워두거나 안내 메시지 등 추가 가능
             const Expanded(
               child: Center(
-                child: Text('Article Page', style: TextStyle(fontSize: 20)),
+                child: Text('외부 기사로 이동 중...', style: TextStyle(fontSize: 16)),
               ),
             ),
           ],
