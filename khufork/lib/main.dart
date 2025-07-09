@@ -1,7 +1,39 @@
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const KhuFork());
+}
+
+// 별점 저장 함수
+Future<void> submitRating(String albumId, double stars) async {
+  final url = Uri.parse('http://localhost:8080/api/rating'); // 실제 서버 주소에 맞게 조정
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'albumId': albumId, 'stars': stars}),
+  );
+
+  if (response.statusCode == 200) {
+    print('✅ 별점 저장 완료: $stars');
+  } else {
+    print('❌ 저장 실패: ${response.statusCode} - ${response.body}');
+  }
+}
+
+// 별점 불러오기 함수
+Future<double?> loadRating(String albumId) async {
+  final url = Uri.parse('http://localhost:8080/api/rating/$albumId');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['stars'] as num?)?.toDouble();
+  } else {
+    print('❌ 별점 불러오기 실패: ${response.body}');
+    return null;
+  }
 }
 
 class KhuFork extends StatelessWidget {
@@ -81,8 +113,25 @@ class MainTabScaffold extends StatelessWidget {
 
 /// ---------------------- Pages ----------------------
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   const MainPage({super.key});
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  double? bratRating;
+
+  @override
+  void initState() {
+    super.initState();
+    loadRating('album_brat').then((value) {
+      setState(() {
+        bratRating = value;
+      });
+    });
+  }
 
   Widget _buildLargeTitle(String title) {
     return Padding(
@@ -720,9 +769,28 @@ class PlayerPage extends StatelessWidget {
   }
 }
 
-// 앨범 정보 창
-class AlbumInfoPage extends StatelessWidget {
+class AlbumInfoPage extends StatefulWidget {
   const AlbumInfoPage({super.key});
+
+  @override
+  State<AlbumInfoPage> createState() => _AlbumInfoPageState();
+}
+
+// 앨범 정보 창
+class _AlbumInfoPageState extends State<AlbumInfoPage> {
+  double _initialStars = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadRating("album_brat").then((stars) {
+      if (stars != null) {
+        setState(() {
+          _initialStars = stars;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -814,9 +882,12 @@ class AlbumInfoPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Center(
                   child: InteractiveCriticBox(
-                    initialStars: 5,
+                    initialStars: _initialStars,
                     onRatingChanged: (stars) {
-                      print("User rated $stars stars");
+                      submitRating('album_brat', stars);
+                      setState(() {
+                        _initialStars = stars;
+                      });
                     },
                   ),
                 ),
@@ -984,6 +1055,7 @@ class AlbumInfoPage extends StatelessWidget {
   }
 }
 
+// 앨범 평론 창
 class ArticlePage extends StatelessWidget {
   const ArticlePage({super.key});
 
@@ -1030,6 +1102,7 @@ class ArticlePage extends StatelessWidget {
   }
 }
 
+// 로그인 창
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
@@ -1243,6 +1316,7 @@ class AlbumInfoCard extends StatelessWidget {
   final String artist;
   final Color backgroundColor;
   final IconData icon;
+  final double? userRating; // ⭐️ 추가된 필드
 
   const AlbumInfoCard({
     super.key,
@@ -1250,6 +1324,7 @@ class AlbumInfoCard extends StatelessWidget {
     required this.artist,
     required this.backgroundColor,
     required this.icon,
+    this.userRating, // ⭐️ 선택적 매개변수
   });
 
   @override
@@ -1279,6 +1354,7 @@ class AlbumInfoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            // 앨범 이미지
             Container(
               height: 148,
               width: 148,
@@ -1292,6 +1368,8 @@ class AlbumInfoCard extends StatelessWidget {
                 child: Icon(icon, size: 64, color: CupertinoColors.black),
               ),
             ),
+
+            // 제목
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Text(
@@ -1304,6 +1382,8 @@ class AlbumInfoCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+
+            // 아티스트
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
@@ -1316,6 +1396,26 @@ class AlbumInfoCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+
+            // ⭐️ 사용자 별점 표시
+            if (userRating != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4),
+                child: Row(
+                  children: List.generate(5, (i) {
+                    double threshold = i + 1;
+                    IconData icon;
+                    if (userRating! >= threshold) {
+                      icon = CupertinoIcons.star_fill;
+                    } else if (userRating! >= threshold - 0.5) {
+                      icon = CupertinoIcons.star_lefthalf_fill;
+                    } else {
+                      icon = CupertinoIcons.star;
+                    }
+                    return Icon(icon, size: 16, color: CupertinoColors.black);
+                  }),
+                ),
+              ),
           ],
         ),
       ),
@@ -1387,7 +1487,7 @@ class _InteractiveCriticBoxState extends State<InteractiveCriticBox> {
     widget.onRatingChanged?.call(stars);
   }
 
-  @override
+  @override // Tap 하여 별점 추가하는 메소드
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0), // 앨범 이미지처럼 여백 추가
