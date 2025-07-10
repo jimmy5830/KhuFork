@@ -677,7 +677,7 @@ class PlayerPage extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.asset(
-                    'assets/images/graduation_album.jpg', // 실제 경로로 수정
+                    'images\\Brat.png',
                     width: 280,
                     height: 280,
                     fit: BoxFit.cover,
@@ -695,7 +695,7 @@ class PlayerPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Good Morning',
+                      '360',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -703,7 +703,7 @@ class PlayerPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Kanye West',
+                      'Charli XCX',
                       style: TextStyle(
                         fontSize: 16,
                         color: CupertinoColors.systemGrey,
@@ -719,7 +719,7 @@ class PlayerPage extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: CupertinoSlider(
-                            value: 0.3,
+                            value: 0.0,
                             onChanged: (value) {},
                           ),
                         ),
@@ -836,15 +836,11 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
                   child: Container(
                     width: 210,
                     height: 210,
-                    color: CupertinoColors.activeGreen,
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'brat',
-                      style: TextStyle(
-                        fontSize: 32,
-                        color: CupertinoColors.black,
-                      ),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: Image.asset('images\\Brat.png', fit: BoxFit.cover),
                   ),
                 ),
               ),

@@ -5,9 +5,10 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:mongo_dart/mongo_dart.dart';
 
 Future<void> main() async {
-  // MongoDB 연결 (Atlas 또는 로컬 주소로 교체)
+  // MongoDB 연결
   final db = await Db.create(
-      'mongodb+srv://flutteruser:flutter123@jimmy.a1oa17t.mongodb.net/ratings_db');
+    'mongodb+srv://flutteruser:flutter123@jimmy.a1oa17t.mongodb.net/ratings_db',
+  );
   await db.open();
   final ratings = db.collection('ratings');
 
@@ -43,15 +44,13 @@ Future<void> main() async {
       return Response.ok(jsonEncode({'albumId': albumId, 'stars': null}));
     }
 
-    return Response.ok(jsonEncode({
-      'albumId': albumId,
-      'stars': doc['stars'],
-    }));
+    return Response.ok(jsonEncode({'albumId': albumId, 'stars': doc['stars']}));
   });
 
   // 서버 실행
-  final handler =
-      const Pipeline().addMiddleware(logRequests()).addHandler(router);
+  final handler = const Pipeline()
+      .addMiddleware(logRequests())
+      .addHandler(router);
 
   final server = await io.serve(handler, 'localhost', 8080);
   print('🚀 Mongo API server running on http://localhost:8080');
